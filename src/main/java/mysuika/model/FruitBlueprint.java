@@ -17,9 +17,9 @@ import mysuika.physics.PhysicsWorld;
  * 作成日: 2025-06-02
  */
 public class FruitBlueprint {
-	private float x, y;			// 生成するフルーツの座標（物理ワールド上のm単位）
-	private int type;			// フルーツの型番（FruitTypeのインデックス）
-	private FruitType fruit;	// フルーツ種別情報（半径・色など取得用）
+	private float x, y; // 生成するフルーツの座標（物理ワールド上のm単位）
+	private int type; // フルーツの型番（FruitTypeのインデックス）
+	private FruitType fruit; // フルーツ種別情報（半径・色など取得用）
 
 	/**
 	 * コンストラクタ

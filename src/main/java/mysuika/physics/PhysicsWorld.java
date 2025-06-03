@@ -75,9 +75,9 @@ public class PhysicsWorld {
 	 * ゲームフィールド（床・壁）の生成
 	 */
 	public void init() {
-		createGround();
-		createWall(0.0f);// 左壁
-		createWall(12.9f);// 右壁
+		createGround();		//床
+		createWall(0.0f);	// 左壁
+		createWall(12.9f);	// 右壁
 	}
 	
 	/**
@@ -85,10 +85,10 @@ public class PhysicsWorld {
 	 */
 	private void createGround() {
 		BodyDef def = new BodyDef();
-		def.position.set(6.5f, -0.9f);//フィールド中央下
+		def.position.set(6.5f, -0.9f); //フィールド中央下
 		Body body = world.createBody(def);
 		PolygonShape box = new PolygonShape();
-		box.setAsBox(7.0f, 1.0f);;// 幅14, 高さ2
+		box.setAsBox(7.0f, 1.0f); // 幅14, 高さ2
 		FixtureDef fDef = new FixtureDef();
 		fDef.shape = box;
 		fDef.density = 1.0f;
@@ -102,12 +102,12 @@ public class PhysicsWorld {
 	 */
 	private void createWall(float f) {
 		BodyDef def = new BodyDef();
-		def.position.set(f, 9.0f);// 上下中央
+		def.position.set(f, 9.0f); // 上下中央
 		Body body = world.createBody(def);
 		PolygonShape box = new PolygonShape();
-		box.setAsBox(0.1f, 20.0f); // 幅0.2, 高さ40
+		box.setAsBox(0.1f, 20.0f);  // 幅0.2, 高さ40
 		body.createFixture(box, 0.0f);
-		body.setUserData("wall");// 衝突判定用ラベル
+		body.setUserData("wall"); // 衝突判定用ラベル
 	}
 	
 	/**
@@ -118,24 +118,46 @@ public class PhysicsWorld {
 	 * @return 生成したBody
 	 */
 	private Body createFruitBody(float x, float y, int type) {
+		Body body = createDynamicBody(x, y); // ボディを生成
+		FixtureDef fDef = createFruitFixtureDef(type); // フィクスチャ定義を生成
+		body.createFixture(fDef); // フィクスチャをボディにアタッチ
+		setFruitDamping(body); // 減衰パラメータを適応
+		return body;
+	}
+	
+	/**
+	 * 指定位置に動的ボディを生成
+	 */
+	private Body createDynamicBody(float x, float y) {
 		BodyDef bDef = new BodyDef();
-		bDef.type = BodyType.DYNAMIC;// 動的Body
+		bDef.type = BodyType.DYNAMIC; // 動的Body
 		bDef.position.set(x, y);
-		Body body = world.createBody(bDef);
-		
+		return world.createBody(bDef);
+	}
+	
+	/**
+	 * フルーツ種別に応じたフィクスチャ定義を生成
+	 */
+	private FixtureDef createFruitFixtureDef(int type) {
+		// 円形シェイプ（半径はフルーツ種別ごとに設定）
 		CircleShape circle = new CircleShape();
 		circle.m_radius = GameManager.TYPES[type].getRadius();
-		
+		// フィクスチャ定義（物理特性をセット）
 		FixtureDef fDef = new FixtureDef();
-		fDef.shape = circle;//円形
-		fDef.density =  densityFruits(type);// 質量を一定にするため密度を調整
-		fDef.friction = 0.5f;//摩擦係数
-		fDef.restitution = 0.0f;// 弾まない
-		body.setAngularDamping(10.0f);// 回転減衰
-		body.setLinearDamping(1.0f);// 移動減衰
-		body.createFixture(fDef);
-		
-		return body;
+		fDef.shape = circle; //円形
+		fDef.density =  densityFruits(type); // 質量を一定にするため密度を調整
+		fDef.friction = 0.5f; //摩擦係数
+		fDef.restitution = 0.0f; // 弾まない
+		return fDef;
+	}
+	
+	/**
+	 * ボディの減衰パラメータを設定
+	 * （回転・移動が徐々に止まるようにする）
+	 */
+	private void setFruitDamping(Body body) {
+		body.setAngularDamping(10.0f); // 回転
+		body.setLinearDamping(1.0f); // 移動
 	}
 	
 	/**
@@ -167,7 +189,7 @@ public class PhysicsWorld {
 	 */
 	public Body spawnFruit(float x, float y, int type) {
 		Body body = createFruitBody(x, y, type);
-		body.setUserData(type);// 種別を記録
+		body.setUserData(type); // 種別を記録
 		fruits.add(body);
 		return body;
 	}
@@ -176,8 +198,16 @@ public class PhysicsWorld {
 	 * 物理演算ワールドを1ステップ進め、合体・消去処理を実行
 	 */
 	public void step() {
-		world.step(1.0f / 60.0f, 6, 2);
-		// 合体や消去が発生していれば処理
+		world.step(1.0f / 60.0f, 6, 2);	// ステップ実行
+		removeBody();			// 削除予約のBodyを削除
+		addBody();			// 合体予定のBodyを生成
+	}
+	
+	/**
+	 * 
+	 * 削除予約されたボディを物理ワールドから削除
+	 */
+	private void removeBody() {
 		if (!toBeRemoved.isEmpty()) {
 			for (Body b : toBeRemoved) {
 				fruits.remove(b);
@@ -185,6 +215,13 @@ public class PhysicsWorld {
 			}
 			toBeRemoved.clear();
 		}
+	}
+	
+	/**
+	 * 
+	 * 追加予約されたボディを物理ワールに生成
+	 */
+	private void addBody() {
 		if (!toBeAdded.isEmpty()) {
 			for (FruitBlueprint b : toBeAdded)
 				spawnFruit(b.getX(), b.getY(), b.getType());
@@ -199,7 +236,7 @@ public class PhysicsWorld {
 	 * @param b 合体元Body
 	 */
 	private void mergeFruits(int typeA,Body a,Body b) {
-		manager.addScore(GameManager.TYPES[typeA].getScores());// スコア加算
+		manager.addScore(GameManager.TYPES[typeA].getScores()); // スコア加算
 		// 既に削除予定なら何もしない
 		if (toBeRemoved.contains(a) || toBeRemoved.contains(b)) return;
 		// 合体後の位置は2体の中点
@@ -231,13 +268,13 @@ public class PhysicsWorld {
 	 * @param b 衝突Body
 	 */
 	private void Merge(Body a, Body b) {
-		 // 両方ともフルーツで、同一でなければ判定
+		// 両方ともフルーツで、同一でなければ判定
 		if (fruits.contains(a) && fruits.contains(b) && a != b) {
 			int typeA = (int)a.getUserData();
 			int typeB = (int)b.getUserData();
-			if (typeA == 10 && typeB == 10) {// スイカ同士
+			if (typeA == 10 && typeB == 10) { // スイカ同士
 				mergeWatermelon(typeA,a,b);
-			}else if (typeA == typeB && typeA < 10) {/// 同種（スイカ未満）
+			}else if (typeA == typeB && typeA < 10) { // 同種（スイカ未満）
 				mergeFruits(typeA,a,b);
 			}
 		}
@@ -254,7 +291,7 @@ public class PhysicsWorld {
 		Vec2 pos = body.getPosition();
 		int type = (int)body.getUserData();
 		float radius =  GameManager.TYPES[type].getRadius();
-		  // 物理ワールド座標→画面座標に変換
+		// 物理ワールド座標→画面座標に変換
 		int x = (int) (pos.x * SCALE - radius * SCALE);
 		int y = (int) (manager.getFrame().getGamePanel().getHeight() - (pos.y * SCALE + radius * SCALE));
 		return new FruitBlueprint(x,y,type);

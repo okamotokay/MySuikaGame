@@ -115,8 +115,11 @@ public class GamePanel extends JPanel {
 		}
 	}
 	
-	// 以下、ゲッター
+	// 以下、セッターゲッター
 	public int getCursorX() {
 		return cursorX;
+	}
+	public void setCursorX(int newX) {
+		this.cursorX = newX;
 	}
 }

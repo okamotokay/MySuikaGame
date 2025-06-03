@@ -41,16 +41,16 @@ public class SidePanel extends JPanel {
 		
 		super.paintComponent(g);
 		drawNextSection(g);		// NEXTフルーツ表示
-		drawScoreSection(g);	// スコア表示
-		drawFruitRingSection(g);// 進化の輪表示
+		drawScoreSection(g);		// スコア表示
+		drawFruitRingSection(g);	// 進化の輪表示
 	}
 	/**
 	 * NEXTフルーツのラベルとグラフィックを描画
 	 * @param g グラフィックスオブジェクト
 	 */
 	private void drawNextSection(Graphics g) {
-		viewText(g, "NEXT", 20);// ラベル描画
-		drawNextFruit(g); 		// NEXTフルーツのグラフィック描画
+		viewText(g, "NEXT", 20); // ラベル描画
+		drawNextFruit(g); // NEXTフルーツのグラフィック描画
 	}
 	
 	/**
@@ -58,8 +58,8 @@ public class SidePanel extends JPanel {
 	 * @param g グラフィックスオブジェクト
 	 */
 	private void drawScoreSection(Graphics g) {
-		viewText(g, "SCORE", 160);					// ラベル描画
-		viewText(g, "" + manager.getScore(), 210);	// スコア数値描画
+		viewText(g, "SCORE", 160);// ラベル描画
+		viewText(g, "" + manager.getScore(), 210); // スコア数値描画
 	}
 	
 	/**
@@ -67,8 +67,8 @@ public class SidePanel extends JPanel {
 	 * @param g グラフィックスオブジェクト
 	 */
 	private void drawFruitRingSection(Graphics g) {
-		viewText(g, "シンカの輪", 300);	// ラベル描画
-		drawFruitRing(g);				// 全フルーツを円形に描画
+		viewText(g, "シンカの輪", 300); // ラベル描画
+		drawFruitRing(g); // 全フルーツを円形に描画
 	}
 	
 	/**
@@ -77,7 +77,7 @@ public class SidePanel extends JPanel {
 	 */
 	private void drawNextFruit(Graphics g) {
 		//	ネクストフルーツのグラフィック描画
-		float nextf = GameManager.TYPES[manager.getNext()].getRadius() * 30;// 半径(px)
+		float nextf = GameManager.TYPES[manager.getNext()].getRadius() * 30; // 半径(px)
 		int fx = (int)(getWidth() / 2 - nextf); // 中央揃え
 		int fy =  (int)(70);
 		int fd = (int)(nextf * 2); // 直径

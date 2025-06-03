@@ -26,10 +26,10 @@ import mysuika.logic.GameManager;
 public class GameFrame extends JFrame {
 	
 	static final int FPS = 16;	// 約60fpsでゲームを更新するタイマー間隔（ミリ秒）
-	private GameManager manager;// ゲーム全体のロジック管理
+	private GameManager manager;	// ゲーム全体のロジック管理
 	private JPanel contentPane;	// メインパネル（土台）
-	private GamePanel gamePanel;// ゲーム描画用のパネル
-	private SidePanel sidePanel;// NEXTやスコア表示用のサブパネル
+	private GamePanel gamePanel;	// ゲーム描画用のパネル
+	private SidePanel sidePanel;	// NEXTやスコア表示用のサブパネル
 	private Timer timer;		// ゲームループ用タイマー
 	
 	/**
@@ -37,18 +37,27 @@ public class GameFrame extends JFrame {
 	 * ウィンドウの初期設定とゲーム開始処理を行う
 	 */
 	public GameFrame() {
-		setTitle("スイカゲーム ver 1.1");			// ウィンドウタイトル
-		setSize(600, 600);							// ウィンドウサイズ
+		setTitle("スイカゲーム ver 1.1");		// ウィンドウタイトル
+		setSize(600, 600);				// ウィンドウサイズ
 		setDefaultCloseOperation(EXIT_ON_CLOSE);	//閉じるボタン
-		setResizable(true);							//ウィンドウサイズ変更の可否 true/false
-		setLocationRelativeTo(null);				// 画面中央に表示
-		startNewGame(); 							// ゲームの初期化
+		setResizable(true);				//ウィンドウサイズ変更の不可
+		setLocationRelativeTo(null); 			// 画面中央に表示
+		startNewGame();					// ゲームの初期化
 	}
 	/**
-	 * ゲーム開始時の初期処理
-	 * パネルのレイアウト構築、イベントリスナー・タイマーの設定など
+	 * ゲーム開始時の初期化処理
+	 * UI構築、リスナー登録、タイマー開始
 	 */
 	private void startNewGame(){
+		setupPanels();
+		setupListeners();
+		setupTimer();
+	}
+	
+	/**
+	 * UI構築（ゲーム画面・サイドパネル）
+	 */
+	private void setupPanels() {
 		// ゲームロジック管理クラスの生成
 		this.manager = new GameManager(this);
 		// ゲーム描画パネルの生成・設定
@@ -65,34 +74,47 @@ public class GameFrame extends JFrame {
 		add(contentPane);
 		// ゲームパネルのフォーカス設定
 		gamePanel.setFocusable(true);
-		
+	}
+	
+	/**
+	 * 入力リスナー登録（マウス・キーボード）
+	 */
+	private void setupListeners() {
 		// --- ユーザー入力リスナーの設定 ---
 		// マウスクリックでフルーツを落下
 		gamePanel.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				manager.Dropped();//ドロップメソッドを呼ぶ
+				manager.dropFruit();//ドロップメソッドを呼ぶ
 			}
 		});
 		
-		// キーボード（スペースキー）でフルーツを落下
+		// --- キーボード操作の設定 ---
+		// ・下キーでフルーツを落下
+		// ・左右キーでガイド（落下位置）を移動
 		gamePanel.addKeyListener(new KeyAdapter() {
-			@Override	
-			public void keyPressed(KeyEvent e) {if
-				(e.getKeyCode() == KeyEvent.VK_SPACE) {
-				manager.Dropped();
-				}
-			}
+			@Override
+			public void keyPressed(KeyEvent e) {
+				switch (e.getKeyCode()) {
+				case KeyEvent.VK_DOWN -> manager.dropFruit();
+				case KeyEvent.VK_LEFT  -> manager.moveGuideLeft();
+				case KeyEvent.VK_RIGHT -> manager.moveGuideRight();
+			}}
 		});
-		
-		// --- ゲームループ（タイマー） ---
-		// FPS間隔で物理演算・描画・ゲームオーバー判定を繰り返す
+	}
+
+	/**
+	 * ゲームループ（タイマー）
+	 * FPS間隔で物理演算・描画・ゲームオーバー判定を繰り返す
+	 */
+	private void setupTimer() {
 		this.timer = new Timer(FPS, e -> {
 			manager.getWorld().step();	// 物理ワールド更新
 			gamePanel.repaint();		// ゲーム画面再描画
 			manager.isGameOver();		// ゲームオーバー判定
 		});
 		timer.start();
+		requestFocusInWindow(); // gamePanelにフォーカスを当てる
 	}
 	
 	//以下、ゲッター

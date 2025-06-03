@@ -5,6 +5,7 @@ import org.jbox2d.dynamics.Body;
 import mysuika.model.FruitType;
 import mysuika.physics.PhysicsWorld;
 import mysuika.ui.GameFrame;
+import mysuika.ui.GamePanel;
 
 /**
  * GameManager クラス
@@ -46,25 +47,25 @@ public class GameManager {
 	public GameManager(GameFrame gameframe){
 		this.frame = gameframe;
 		this.score = 0;
-		this.constType = randType();// 現在のフルーツ型をランダムに設定
-		this.nextType = randType();	// 次のフルーツ型をランダムに設定
+		this.constType = randType(); // 現在のフルーツ型をランダムに設定
+		this.nextType = randType(); // 次のフルーツ型をランダムに設定
 		
 		this.physics = new PhysicsWorld(this);
 		this.physics.init(); // 物理ワールドの初期化
 	}
 	
 	/**
-     * 落下中フルーツの衝突検知後の処理
-     * - ガイドとNEXTのフルーツを更新
-     * - パネルの再描画
-     * - 落下中フラグの解除
-     */
+	 * 落下中フルーツの衝突検知後の処理
+	 * - ガイドとNEXTのフルーツを更新
+	 * - パネルの再描画
+	 * - 落下中フラグの解除
+	 */
 	public void CollisionDetection() {
 		this.constType = nextType;
 		this.nextType = randType();
 		frame.getSidePanel().repaint();
 		frame.getGamePanel().repaint();
-		physics.clearDrop();// 監視中のBodyをnullにする
+		physics.clearDrop(); // 監視中のBodyをnullにする
 		isDrop = false; // 落下中フラグをfalseに
 	}
 	
@@ -74,7 +75,7 @@ public class GameManager {
 	 * - フルーツの物理Bodyを生成し、落下開始
 	 * - ガイド表示を一時的に非表示（落下中フラグがtrueの間）
 	 */
-	public void Dropped() {
+	public void dropFruit() {
 		if (isDrop) return;// 既に落下中なら何もしない
 		isDrop = true;// 落下中フラグを立てる
 		 // ガイド位置から物理ワールド座標へ変換
@@ -82,28 +83,55 @@ public class GameManager {
 		float y = (frame.getGamePanel().getHeight() - 50) / 30.0f;
 		// フルーツを物理ワールドに生成し、落下開始。Bodyが実際に生成されるのはここ
 		physics.setDrop(physics.spawnFruit(x, y,constType));
-		 // 落下中はガイドに何も表示しない
+		// 落下中はガイドに何も表示しない
 		this.constType = -1;
 		frame.getGamePanel().repaint();
 	}
 	
-	 /**
-	  * ゲームオーバー判定
-	  * - 全フルーツの座標をチェックし、上部ラインを超えていればゲームオーバー
-	  * - ゲームオーバー時はタイマー停止
-	  */
+	/**
+	 * ゲームオーバー判定
+	 * - 全フルーツの座標をチェックし、上部ラインを超えていればゲームオーバー
+	 * - ゲームオーバー時はタイマー停止
+	 */
 	public void isGameOver() {
 		for (Body fruit : physics.getList()) {
 			if (isDrop)  continue; // 落下中のフルーツは処理をスキップ
 			float y = fruit.getPosition().y;// フルーツの高さ座標
 			float fruitRadius = TYPES[(int) fruit.getUserData()].getRadius();// フルーツの半径
-			 // フルーツの上端がゲームオーバーラインを超えたか判定
+			// フルーツの上端がゲームオーバーラインを超えたか判定
 			if (y + fruitRadius > GAMEOVER_LINE) {
 				isGameover = true;
 				break;
 			}
 		}
 		if(isGameover)frame.getTimer().stop();	// ゲーム停止
+	}
+	
+	/**
+	 * ガイド（カーソル）を左に移動
+	 */
+	public void moveGuideLeft() {
+		GamePanel panel = frame.getGamePanel();
+		int step = 20; // 1回の移動量（ピクセル数、調整可）
+		int newX = panel.getCursorX() - step;
+		// 左端に到達したらそれ以上行かない
+		if (newX < 0) newX = 0;
+		panel.setCursorX(newX);
+		panel.repaint();
+	}
+
+	/**
+	 * ガイド（カーソル）を右に移動
+	 */
+	public void moveGuideRight() {
+		GamePanel panel = frame.getGamePanel();
+		int step = 20; // 1回の移動量（ピクセル数、調整可）
+		int maxX = panel.getWidth(); // パネルの右端
+		int newX = panel.getCursorX() + step;
+		// 右端に到達したらそれ以上行かない
+		if (newX > maxX) newX = maxX;
+		panel.setCursorX(newX);
+		panel.repaint();
 	}
 	
 	/**

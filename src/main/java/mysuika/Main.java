@@ -13,6 +13,7 @@ import mysuika.ui.GameFrame;
  * 
  * 作成者: 岡本
  * 更新日: 2025-06-02
+ * 
  */
 public class Main {
 	
@@ -21,4 +22,3 @@ public class Main {
 		SwingUtilities.invokeLater(() -> new  GameFrame().setVisible(true));
 	}
 }
-
