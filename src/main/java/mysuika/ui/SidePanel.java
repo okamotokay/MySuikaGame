@@ -21,14 +21,22 @@ import mysuika.logic.GameManager;
  */
 public class SidePanel extends JPanel {
 
-	private final static int NEXT_LABEL  = 10;      // ネクストの文字のY座標
-	private final static int NEXT_Y = 80;           // ネクストのフルーツ円の中心のY座標
-	private final static int FRUITRING_LABEL = 130; // シンカの輪の文字のY座標
-	private final static int FRUITRING_Y = 180;     // シンカの輪のドーナツのY座標
-	private final static int FRUITRING_RADIUS = 50; // シンカの輪のドーナツの半径
-	private final static int FRUITRING_ICON = 20;   // シンカの輪のアイコンの直径
-	private final static int FRUITRING_ANGLE = 72;  // シンカの輪描画の開始位置の角度
-	//private final static int HIGHSCORE_LABEL = 400;
+	private final static Font FONT             = new Font("Yu Gothic UI Mono", Font.BOLD, 23);
+	private final static int  NEXT_LABEL       = 10;  // ネクストのラベルのY座標
+	private final static int  NEXT_Y           = 80;  // ネクストのフルーツ円の中心のY座標
+	private final static int  FRUITRING_LABEL  = 130; // シンカの輪のラベルのY座標
+	private final static int  FRUITRING_Y      = 180; // シンカの輪のドーナツのY座標
+	private final static int  SCORE_LABEL      = 310; // スコアのラベルのY座標
+	private final static int  SCORE_Y          = 350; // スコア数値のY座標
+	private final static int  HIGHSCORE_LABEL  = 400; // ハイスコアのラベルのY座標
+	private final static int  HIGHSCORE_Y      = 440; // ハイスコアランキングのY座標
+
+	private final static int  FRUITRING_RADIUS = 50;  // シンカの輪のドーナツの半径
+	private final static int  FRUITRING_ICON   = 20;  // シンカの輪のアイコンの直径
+	private final static int  FRUITRING_ANGLE  = 72;  // シンカの輪描画の開始位置の角度
+	private final static int  HIGHSCORE_WIDTH1 = 50;  // 順位の字幅
+	private final static int  HIGHSCORE_LINE   = 30;  // 順位の行幅
+	
 	//private final static int HIGHSCORE_VALUE = 0;
 	
 	private GameManager manager; // ゲーム全体の管理クラスへの参照
@@ -78,8 +86,8 @@ public class SidePanel extends JPanel {
 	 * @param g グラフィックスオブジェクト
 	 */
 	private void drawScoreSection(Graphics g) {
-		viewText(g, "スコア", 310);// ラベル描画
-		viewText(g, "" + manager.getScore(), 350); // スコア数値描画
+		viewText(g, "スコア", SCORE_LABEL);// ラベル描画
+		viewText(g, "" + manager.getScore(), SCORE_Y); // スコア数値描画
 	}
 	
 	/**
@@ -87,7 +95,7 @@ public class SidePanel extends JPanel {
 	 * @param g グラフィックスオブジェクト
 	 */
 	private void drawHighScoreSection(Graphics g) {
-		viewText(g, "ハイスコア", 400);// ラベル描画
+		viewText(g, "ハイスコア", HIGHSCORE_LABEL);// ラベル描画
 		drawHighScores(g);
 	}
 	
@@ -132,17 +140,32 @@ public class SidePanel extends JPanel {
 		}
 	}
 	
+	/**
+	 * ハイスコアランキング描画
+	 * @param g グラフィックスオブジェクト
+	 * 
+	 */
 	private void drawHighScores(Graphics g) {
-	    viewText(g, "ハイスコア", 400);
-	    List<Integer> topScores = manager.getTopScores();
-	    int startY = 440;
-	    int lineHeight = 30;
-	    int rank = 1;
-	    for (int score : topScores) {
-	        viewText(g, rank + "位: " + score, startY);
-	        startY += lineHeight;
-	        rank++;
-	    }
+		List<Integer> topScores = manager.getTopScores();
+		g.setFont(FONT);
+		FontMetrics fm    = g.getFontMetrics();
+		int startY        = HIGHSCORE_Y;
+		int maxScoreWidth = fm.stringWidth("99999");                             // 最大想定スコア桁数に合わせる
+		int baseX         = (getWidth() - (HIGHSCORE_WIDTH1 + maxScoreWidth)) / 2;  // 全体中央揃えの開始X位置
+		int rank          = 1;
+		for (int score : topScores) {
+			String rankText  = rank + "位: ";
+			String scoreText = String.valueOf(score);
+			int rankTextX    = baseX; // 順位は左揃え
+			int scoreTextX   = baseX + HIGHSCORE_WIDTH1 + maxScoreWidth - fm.stringWidth(scoreText); // スコアは右揃え
+			int textY        = fm.getAscent() + startY;
+			
+			g.setColor(Color.BLACK);
+			g.drawString(rankText, rankTextX, textY);
+			g.drawString(scoreText, scoreTextX, textY);
+			startY += HIGHSCORE_LINE;
+			rank++;
+		}
 	}
 	
 	/**
@@ -152,8 +175,7 @@ public class SidePanel extends JPanel {
 	 * @param y Y座標（上端からのオフセット）
 	 */
 	void viewText(Graphics g, String text, int y) {
-		
-		g.setFont(new Font("Yu Gothic UI Mono", Font.BOLD, 23));
+		g.setFont(FONT);
 		FontMetrics fm = g.getFontMetrics();
 		int textWidth  = fm.stringWidth(text);
 		int textX      = (getWidth() - textWidth) / 2;
